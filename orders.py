@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from dotenv import load_dotenv
-from utils import generate_signature
-from utils import get_current_timestamp
+from utils import generate_signature, get_current_timestamp
+
+import logging
+logging.basicConfig(filename="test.log", level=logging.DEBUG)
 
 import requests
 import os
@@ -21,6 +23,7 @@ order_type = 'LIMIT'
 order_validity = 'GTC'
 
 def place_order(action, price):
+    '''place bid/ask orders for BTCUSDT'''
     query_params = f'symbol={symbol}&side={action}&type={order_type}&timeInForce={order_validity}&quantity={quantity}&price={price}&timestamp={get_current_timestamp()}'
     signature = generate_signature(query_params, secret)
     payload = {}
@@ -29,10 +32,11 @@ def place_order(action, price):
         'X-MBX-APIKEY': api_key
     }
     url = f'https://{base_url}{url_path_place_order}?{query_params}&signature={signature}'
-    response = requests.request("POST", url, headers=headers, data=payload)
-    print (response.json())
+    logging.debug(requests.request("POST", url, headers=headers, data=payload))
+    print(f'New {action} order with price {price} placed')
 
 def cancel_open_orders():
+    """cancel all open orders for BTCUSDT"""
     query_params = f'symbol={symbol}&timestamp={get_current_timestamp()}'
     signature = generate_signature(query_params, secret)
     url = f'https://{base_url}{url_path_cancel_open_orders}?{query_params}&signature={signature}'
@@ -41,6 +45,7 @@ def cancel_open_orders():
         'Content-Type': 'application/json',
         'X-MBX-APIKEY': api_key
     }
-    response = requests.request("DELETE", url, headers=headers, data=payload)
-    print(response.json())
+    logging.debug(requests.request("DELETE", url, headers=headers, data=payload))
+    print('Existing bid/ask orders cancelled')
+
 
